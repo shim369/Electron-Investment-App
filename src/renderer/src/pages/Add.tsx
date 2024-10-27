@@ -49,7 +49,7 @@ const Add: React.FC<AddProps> = ({ investments, setInvestments }) => {
         <input
           type="text"
           name="name"
-          placeholder="Investment Name"
+          placeholder="Stock name"
           value={newInvestment.name}
           onChange={handleChange}
           className="form-control mb-2"
