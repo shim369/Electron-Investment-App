@@ -12,14 +12,20 @@ const Home: React.FC<Props> = ({ initialInvestments = [] }) => {
     name: '',
     purchasePrice: 0,
     currentPrice: 0,
-    amount: 0
+    amount: 0,
+    purchaseDate: new Date()
   })
 
   useEffect(() => {
     const storedInvestments = localStorage.getItem('investments')
     if (storedInvestments) {
       try {
-        const parsedInvestments = JSON.parse(storedInvestments)
+        const parsedInvestments: Investment[] = JSON.parse(storedInvestments).map(
+          (investment: any) => ({
+            ...investment,
+            purchaseDate: new Date(investment.purchaseDate)
+          })
+        )
         setInvestments(parsedInvestments)
       } catch (error) {
         console.error('Error parsing JSON from localStorage:', error)
@@ -33,10 +39,19 @@ const Home: React.FC<Props> = ({ initialInvestments = [] }) => {
   }, [initialInvestments])
 
   const handleAddInvestment = () => {
-    const updatedInvestments = [...investments, newInvestment]
+    const updatedInvestments = [
+      ...investments,
+      { ...newInvestment, purchaseDate: new Date(newInvestment.purchaseDate) }
+    ]
     setInvestments(updatedInvestments)
     localStorage.setItem('investments', JSON.stringify(updatedInvestments))
-    setNewInvestment({ name: '', purchasePrice: 0, currentPrice: 0, amount: 0 })
+    setNewInvestment({
+      name: '',
+      purchasePrice: 0,
+      currentPrice: 0,
+      amount: 0,
+      purchaseDate: new Date()
+    })
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -47,15 +62,22 @@ const Home: React.FC<Props> = ({ initialInvestments = [] }) => {
     }))
   }
 
-  // 利益を計算する関数
   const calculateProfit = (investment: Investment) => {
     const profitPerUnit = investment.currentPrice - investment.purchasePrice
     return profitPerUnit * investment.amount
   }
 
-  // 合計損益を計算する関数
   const calculateTotalProfit = () => {
     return investments.reduce((total, investment) => total + calculateProfit(investment), 0)
+  }
+
+  const formatDate = (date: Date): string => {
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }
+    return date.toLocaleDateString(undefined, options)
   }
 
   return (
@@ -69,6 +91,7 @@ const Home: React.FC<Props> = ({ initialInvestments = [] }) => {
             <th>購入時の価格</th>
             <th>現在の価格</th>
             <th>購入量</th>
+            <th>購入日</th>
             <th>利益</th>
           </tr>
         </thead>
@@ -79,11 +102,12 @@ const Home: React.FC<Props> = ({ initialInvestments = [] }) => {
               <td>¥{investment.purchasePrice}</td>
               <td>¥{investment.currentPrice}</td>
               <td>{investment.amount}</td>
+              <td>{formatDate(investment.purchaseDate)}</td> {/* Format the purchaseDate */}
               <td>¥{calculateProfit(investment)}</td>
             </tr>
           ))}
           <tr>
-            <td colSpan={4} className="text-end fw-bold">
+            <td colSpan={5} className="text-end fw-bold">
               合計損益
             </td>
             <td>¥{calculateTotalProfit()}</td>
@@ -123,6 +147,15 @@ const Home: React.FC<Props> = ({ initialInvestments = [] }) => {
           placeholder="購入量"
           value={newInvestment.amount}
           onChange={handleChange}
+          className="form-control mb-2"
+        />
+        <input
+          type="date"
+          name="purchaseDate"
+          value={newInvestment.purchaseDate.toISOString().substring(0, 10)}
+          onChange={(e) =>
+            setNewInvestment({ ...newInvestment, purchaseDate: new Date(e.target.value) })
+          }
           className="form-control mb-2"
         />
         <button onClick={handleAddInvestment} className="btn btn-primary">
