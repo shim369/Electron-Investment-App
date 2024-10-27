@@ -26,6 +26,9 @@ const Header = () => {
               <Link to="/" className="nav-link active">
                 Home
               </Link>
+              <Link to="/add" className="nav-link active">
+                Add
+              </Link>
             </div>
           </div>
         </div>
