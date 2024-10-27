@@ -20,12 +20,10 @@ const Home: React.FC<Props> = ({ initialInvestments = [] }) => {
     const storedInvestments = localStorage.getItem('investments')
     if (storedInvestments) {
       try {
-        const parsedInvestments: Investment[] = JSON.parse(storedInvestments).map(
-          (investment: any) => ({
-            ...investment,
-            purchaseDate: new Date(investment.purchaseDate)
-          })
-        )
+        const parsedInvestments: Investment[] = JSON.parse(storedInvestments).map((investment) => ({
+          ...investment,
+          purchaseDate: new Date(investment.purchaseDate)
+        }))
         setInvestments(parsedInvestments)
       } catch (error) {
         console.error('Error parsing JSON from localStorage:', error)
@@ -102,7 +100,7 @@ const Home: React.FC<Props> = ({ initialInvestments = [] }) => {
               <td>¥{investment.purchasePrice}</td>
               <td>¥{investment.currentPrice}</td>
               <td>{investment.amount}</td>
-              <td>{formatDate(investment.purchaseDate)}</td> {/* Format the purchaseDate */}
+              <td>{formatDate(investment.purchaseDate)}</td>
               <td>¥{calculateProfit(investment)}</td>
             </tr>
           ))}
