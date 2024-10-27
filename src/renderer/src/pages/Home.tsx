@@ -1,8 +1,7 @@
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo, useRef } from 'react'
 import { Investment } from '@renderer/types/investment'
 import 'bootstrap/dist/css/bootstrap.min.css'
-import { Line } from 'react-chartjs-2'
-import { Filler } from 'chart.js'
+import { Line as ChartLine } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -11,9 +10,12 @@ import {
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  Filler
 } from 'chart.js'
 import formatDate from '../utils/formatDate'
+import jsPDF from 'jspdf'
+import html2canvas from 'html2canvas'
 
 ChartJS.register(
   CategoryScale,
@@ -32,6 +34,8 @@ interface Props {
 
 const Home: React.FC<Props> = ({ initialInvestments = [] }) => {
   const [investments, setInvestments] = useState<Investment[]>(initialInvestments)
+  const printRef = useRef<HTMLDivElement>(null)
+  const chartRef = useRef<ChartJS<'line'> | null>(null)
 
   useEffect(() => {
     const storedInvestments = localStorage.getItem('investments')
@@ -94,6 +98,7 @@ const Home: React.FC<Props> = ({ initialInvestments = [] }) => {
 
   const chartOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         position: 'top' as const
@@ -105,43 +110,71 @@ const Home: React.FC<Props> = ({ initialInvestments = [] }) => {
     }
   }
 
+  const handlePrint = async () => {
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
+      putOnlyUsedFonts: true
+    })
+
+    if (printRef.current) {
+      const canvas = await html2canvas(printRef.current, { scale: 2, useCORS: true })
+      const containerImage = canvas.toDataURL('image/png')
+
+      const imgWidth = 190
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
+      doc.addImage(containerImage, 'PNG', 10, 30, imgWidth, imgHeight)
+    } else {
+      console.error('Print reference is null')
+    }
+
+    doc.save('investment_portfolio.pdf')
+  }
+
   return (
     <div className="container">
-      <h2 className="my-4">Investment Portfolio</h2>
-      <table className="table table-striped mb-4">
-        <thead>
-          <tr>
-            <th>Stock name</th>
-            <th>Purchase Price</th>
-            <th>Current Price</th>
-            <th>Quantity</th>
-            <th>Purchase Date</th>
-            <th>Profit/Loss</th>
-          </tr>
-        </thead>
-        <tbody>
-          {investments.map((investment, index) => (
-            <tr key={index}>
-              <td>{investment.name}</td>
-              <td>¥{investment.purchasePrice}</td>
-              <td>¥{investment.currentPrice}</td>
-              <td>{investment.amount}</td>
-              <td>{formatDate(investment.purchaseDate)}</td>
-              <td>¥{calculateProfit(investment)}</td>
-            </tr>
-          ))}
-          <tr>
-            <td colSpan={5} className="text-end fw-bold">
-              Total Profit/Loss
-            </td>
-            <td>¥{calculateTotalProfit()}</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <h2 className="my-4">Monthly Profit Trend</h2>
-      <div className="chart-container mb-4">
-        <Line data={chartData} options={chartOptions} />
+      <button className="btn btn-primary mb-3" onClick={handlePrint}>
+        Print to PDF
+      </button>
+      <div ref={printRef}>
+        <h2 className="my-4">Investment Portfolio</h2>
+        <div className="table-responsive">
+          <table className="table table-striped table-bordered mb-4">
+            <thead>
+              <tr>
+                <th>Stock name</th>
+                <th>Purchase Price</th>
+                <th>Current Price</th>
+                <th>Quantity</th>
+                <th>Purchase Date</th>
+                <th>Profit/Loss</th>
+              </tr>
+            </thead>
+            <tbody>
+              {investments.map((investment, index) => (
+                <tr key={index}>
+                  <td>{investment.name}</td>
+                  <td>¥{investment.purchasePrice}</td>
+                  <td>¥{investment.currentPrice}</td>
+                  <td>{investment.amount}</td>
+                  <td>{formatDate(investment.purchaseDate)}</td>
+                  <td>¥{calculateProfit(investment)}</td>
+                </tr>
+              ))}
+              <tr>
+                <td colSpan={5} className="text-end fw-bold">
+                  Total Profit/Loss
+                </td>
+                <td>¥{calculateTotalProfit()}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <h2 className="my-4">Monthly Profit Trend</h2>
+        <div className="chart-container mb-4">
+          <ChartLine ref={chartRef} data={chartData} options={chartOptions} />
+        </div>
       </div>
     </div>
   )
