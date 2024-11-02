@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Investment } from '@renderer/types/investment'
 import { useNavigate } from 'react-router-dom'
+import axios from 'axios'
 
 interface AddProps {
   investments: Investment[]
@@ -16,6 +17,25 @@ const Add: React.FC<AddProps> = ({ investments, setInvestments }) => {
     purchaseDate: new Date()
   })
   const navigate = useNavigate()
+
+  const fetchCurrentPrice = async () => {
+    try {
+      const apiKey = import.meta.env.REACT_APP_ALPHA_VANTAGE_API_KEY
+      const response = await axios.get(
+        `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${newInvestment.name}&interval=5min&apikey=${apiKey}`
+      )
+      const timeSeries = response.data['Time Series (5min)']
+      const latestTimestamp = Object.keys(timeSeries)[0]
+      const latestPrice = parseFloat(timeSeries[latestTimestamp]['4. close'])
+
+      setNewInvestment((prev) => ({
+        ...prev,
+        currentPrice: latestPrice
+      }))
+    } catch (error) {
+      console.error('Error fetching current price:', error)
+    }
+  }
 
   const handleAddInvestment = () => {
     const updatedInvestments = [
@@ -57,6 +77,9 @@ const Add: React.FC<AddProps> = ({ investments, setInvestments }) => {
             className="form-control mb-2"
           />
         </div>
+        <button onClick={fetchCurrentPrice} className="btn btn-secondary mb-2">
+          Fetch Current Price
+        </button>
         <div className="mb-2">
           <label htmlFor="purchasePrice">Purchase Price</label>
           <input
@@ -77,6 +100,7 @@ const Add: React.FC<AddProps> = ({ investments, setInvestments }) => {
             value={newInvestment.currentPrice}
             onChange={handleChange}
             className="form-control mb-2"
+            readOnly
           />
         </div>
         <div className="mb-2">

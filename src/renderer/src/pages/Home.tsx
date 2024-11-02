@@ -155,11 +155,11 @@ const Home: React.FC<Props> = ({ initialInvestments = [] }) => {
               {investments.map((investment, index) => (
                 <tr key={index}>
                   <td>{investment.name}</td>
-                  <td>¥{investment.purchasePrice}</td>
-                  <td>¥{investment.currentPrice}</td>
+                  <td>${investment.purchasePrice}</td>
+                  <td>${investment.currentPrice}</td>
                   <td>{investment.amount}</td>
                   <td>{formatDate(investment.purchaseDate)}</td>
-                  <td>¥{calculateProfit(investment)}</td>
+                  <td>${calculateProfit(investment)}</td>
                 </tr>
               ))}
               <tr>
