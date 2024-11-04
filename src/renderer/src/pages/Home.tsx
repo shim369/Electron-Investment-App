@@ -166,7 +166,7 @@ const Home: React.FC<Props> = ({ initialInvestments = [] }) => {
                 <td colSpan={5} className="text-end fw-bold">
                   Total Profit/Loss
                 </td>
-                <td>¥{calculateTotalProfit()}</td>
+                <td>${calculateTotalProfit()}</td>
               </tr>
             </tbody>
           </table>
