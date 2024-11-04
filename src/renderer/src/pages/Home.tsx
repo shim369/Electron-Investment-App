@@ -161,6 +161,7 @@ const Home: React.FC<Props> = ({ initialInvestments = [] }) => {
                 <th>Stock name</th>
                 <th>Purchase Price</th>
                 <th>Current Price</th>
+                <th>Target Price</th>
                 <th>Quantity</th>
                 <th>Purchase Date</th>
                 <th>Profit/Loss</th>
@@ -172,6 +173,7 @@ const Home: React.FC<Props> = ({ initialInvestments = [] }) => {
                   <td>{investment.name}</td>
                   <td>${investment.purchasePrice}</td>
                   <td>${investment.currentPrice}</td>
+                  <td>${investment.targetPrice}</td>
                   <td>{investment.amount}</td>
                   <td>{formatDate(investment.purchaseDate)}</td>
                   <td>${calculateProfit(investment).toFixed(3)}</td>
