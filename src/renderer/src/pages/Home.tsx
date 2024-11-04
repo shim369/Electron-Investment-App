@@ -37,6 +37,21 @@ const Home: React.FC<Props> = ({ initialInvestments = [] }) => {
   const printRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<ChartJS<'line'> | null>(null)
 
+  const checkAlerts = () => {
+    investments.forEach((investment) => {
+      if (investment.targetPrice && investment.currentPrice >= investment.targetPrice) {
+        alert(
+          `Investment in ${investment.name} has reached the target price of $${investment.targetPrice}!`
+        )
+      }
+    })
+  }
+
+  useEffect(() => {
+    const intervalId = setInterval(checkAlerts, 60000) // 60秒毎にチェック
+
+    return () => clearInterval(intervalId)
+  }, [investments])
   useEffect(() => {
     const storedInvestments = localStorage.getItem('investments')
     if (storedInvestments) {
@@ -159,14 +174,14 @@ const Home: React.FC<Props> = ({ initialInvestments = [] }) => {
                   <td>${investment.currentPrice}</td>
                   <td>{investment.amount}</td>
                   <td>{formatDate(investment.purchaseDate)}</td>
-                  <td>${calculateProfit(investment)}</td>
+                  <td>${calculateProfit(investment).toFixed(3)}</td>
                 </tr>
               ))}
               <tr>
                 <td colSpan={5} className="text-end fw-bold">
                   Total Profit/Loss
                 </td>
-                <td>${calculateTotalProfit()}</td>
+                <td>${calculateTotalProfit().toFixed(3)}</td>
               </tr>
             </tbody>
           </table>

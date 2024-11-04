@@ -104,6 +104,17 @@ const Add: React.FC<AddProps> = ({ investments, setInvestments }) => {
           />
         </div>
         <div className="mb-2">
+          <label htmlFor="targetPrice">Target Price</label>
+          <input
+            type="number"
+            id="targetPrice"
+            name="targetPrice"
+            value={newInvestment.targetPrice || 0}
+            onChange={handleChange}
+            className="form-control mb-2"
+          />
+        </div>
+        <div className="mb-2">
           <label htmlFor="amount">Quantity</label>
           <input
             type="number"

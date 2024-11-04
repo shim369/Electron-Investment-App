@@ -4,4 +4,5 @@ export interface Investment {
   currentPrice: number
   amount: number
   purchaseDate: Date
+  targetPrice?: number
 }
