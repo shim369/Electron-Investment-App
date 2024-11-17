@@ -16,6 +16,7 @@ import {
 import formatDate from '../utils/formatDate'
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
+import axios from 'axios'
 
 ChartJS.register(
   CategoryScale,
@@ -37,9 +38,39 @@ const Home: React.FC<Props> = ({ initialInvestments = [] }) => {
   const printRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<ChartJS<'line'> | null>(null)
 
+  const fetchCurrentPrices = async () => {
+    const apiKey = import.meta.env.REACT_APP_ALPHA_VANTAGE_API_KEY
+    const updatedInvestments = await Promise.all(
+      investments.map(async (investment) => {
+        try {
+          const response = await axios.get(
+            `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${investment.name}&interval=5min&apikey=${apiKey}`
+          )
+          const timeSeries = response.data['Time Series (5min)']
+          const latestTimestamp = Object.keys(timeSeries)[0]
+          const latestPrice = parseFloat(timeSeries[latestTimestamp]['4. close'])
+
+          return {
+            ...investment,
+            currentPrice: latestPrice
+          }
+        } catch (error) {
+          console.error(`Error updating price for ${investment.name}:`, error)
+          return investment
+        }
+      })
+    )
+    setInvestments(updatedInvestments)
+    localStorage.setItem('investments', JSON.stringify(updatedInvestments))
+  }
+
   const checkAlerts = () => {
     investments.forEach((investment) => {
-      if (investment.targetPrice && investment.currentPrice >= investment.targetPrice) {
+      if (
+        investment.targetPrice !== undefined &&
+        investment.targetPrice !== null &&
+        investment.currentPrice === investment.targetPrice
+      ) {
         alert(
           `Investment in ${investment.name} has reached the target price of $${investment.targetPrice}!`
         )
@@ -48,10 +79,14 @@ const Home: React.FC<Props> = ({ initialInvestments = [] }) => {
   }
 
   useEffect(() => {
-    const intervalId = setInterval(checkAlerts, 60000) // 60秒毎にチェック
+    const intervalId = setInterval(async () => {
+      await fetchCurrentPrices()
+      checkAlerts()
+    }, 60000)
 
     return () => clearInterval(intervalId)
   }, [investments])
+
   useEffect(() => {
     const storedInvestments = localStorage.getItem('investments')
     if (storedInvestments) {
@@ -149,9 +184,14 @@ const Home: React.FC<Props> = ({ initialInvestments = [] }) => {
 
   return (
     <div className="container">
-      <button className="btn btn-primary mb-3" onClick={handlePrint}>
-        Print to PDF
-      </button>
+      <div className="mb-3">
+        <button className="btn btn-primary me-3" onClick={fetchCurrentPrices}>
+          Update Current Prices
+        </button>
+        <button className="btn btn-primary" onClick={handlePrint}>
+          Print to PDF
+        </button>
+      </div>
       <div ref={printRef}>
         <h2 className="my-4">Investment Portfolio</h2>
         <div className="table-responsive">
@@ -184,6 +224,7 @@ const Home: React.FC<Props> = ({ initialInvestments = [] }) => {
                   Total Profit/Loss
                 </td>
                 <td>${calculateTotalProfit().toFixed(3)}</td>
+                <td></td>
               </tr>
             </tbody>
           </table>
