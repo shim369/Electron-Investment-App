@@ -220,11 +220,10 @@ const Home: React.FC<Props> = ({ initialInvestments = [] }) => {
                 </tr>
               ))}
               <tr>
-                <td colSpan={5} className="text-end fw-bold">
+                <td colSpan={6} className="text-end fw-bold">
                   Total Profit/Loss
                 </td>
                 <td>${calculateTotalProfit().toFixed(3)}</td>
-                <td></td>
               </tr>
             </tbody>
           </table>
