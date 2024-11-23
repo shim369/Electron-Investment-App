@@ -77,7 +77,7 @@ const Add: React.FC<AddProps> = ({ investments, setInvestments }) => {
             className="form-control mb-2"
           />
         </div>
-        <button onClick={fetchCurrentPrice} className="btn btn-secondary mb-2">
+        <button onClick={fetchCurrentPrice} className="btn btn-success mb-2">
           Fetch Current Price
         </button>
         <div className="mb-2">

@@ -185,7 +185,7 @@ const Home: React.FC<Props> = ({ initialInvestments = [] }) => {
   return (
     <div className="container">
       <div className="mb-3">
-        <button className="btn btn-primary me-3" onClick={fetchCurrentPrices}>
+        <button className="btn btn-success me-3" onClick={fetchCurrentPrices}>
           Update Current Prices
         </button>
         <button className="btn btn-primary" onClick={handlePrint}>
