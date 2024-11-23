@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react'
 import { Investment } from '@renderer/types/investment'
+import { Article } from '@renderer/types/article'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import { Line as ChartLine } from 'react-chartjs-2'
 import {
@@ -37,6 +38,7 @@ const Home: React.FC<Props> = ({ initialInvestments = [] }) => {
   const [investments, setInvestments] = useState<Investment[]>(initialInvestments)
   const printRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<ChartJS<'line'> | null>(null)
+  const [news, setNews] = useState<Article[]>([])
 
   const fetchCurrentPrices = async () => {
     const apiKey = import.meta.env.REACT_APP_ALPHA_VANTAGE_API_KEY
@@ -182,6 +184,26 @@ const Home: React.FC<Props> = ({ initialInvestments = [] }) => {
     doc.save('investment_portfolio.pdf')
   }
 
+  useEffect(() => {
+    const fetchNews = async () => {
+      try {
+        const response = await axios.get('https://newsapi.org/v2/everything', {
+          params: {
+            q: 'investment OR stock market',
+            apiKey: 'c9685825e0894ce09ed1c63a98d554b4',
+            language: 'en',
+            sortBy: 'publishedAt'
+          }
+        })
+        setNews(response.data.articles)
+      } catch (error) {
+        console.error('Error fetching news:', error)
+      }
+    }
+
+    fetchNews()
+  }, [])
+
   return (
     <div className="container">
       <div className="mb-3">
@@ -232,6 +254,25 @@ const Home: React.FC<Props> = ({ initialInvestments = [] }) => {
         <div className="chart-container mb-4">
           <ChartLine ref={chartRef} data={chartData} options={chartOptions} />
         </div>
+      </div>
+      <div>
+        <h2 className="my-4">Latest Investment News</h2>
+        <ul className="list-group">
+          {news.map((article, index) => (
+            <li key={index} className="list-group-item p-4 mb-4">
+              <a
+                href={article.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-decoration-none"
+              >
+                <h3>{article.title}</h3>
+              </a>
+              <p className="mb-1 text-muted">{article.description}</p>
+              <small className="text-muted">{new Date(article.publishedAt).toLocaleString()}</small>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   )
